@@ -29,7 +29,7 @@ def odoo_search_read(model, domain, fields, limit=50, offset=0):
         }
     )
 
-@app.route('/api/so', methods=['GET'])
+@app.route('/clavis_connect/sales/GetSalesOrder', methods=['GET'])
 def get_sale_orders():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -98,7 +98,7 @@ def get_sale_orders():
         'data': data,
     })
 
-@app.route('/api/po', methods=['GET'])
+@app.route('/clavis_connect/purchase/GetPurchaseOrder', methods=['GET'])
 def get_purchase_orders():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -151,7 +151,7 @@ def get_purchase_orders():
         'data': data,
     })
 
-@app.route('/api/product', methods=['GET'])
+@app.route('/clavis_connect/inventory/GetMasterData', methods=['GET'])
 def get_product():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -219,7 +219,7 @@ def get_product():
         'data': data,
     })
 
-@app.route('/api/partner', methods=['GET'])
+@app.route('/clavis_connect/partner/GetPartner', methods=['GET'])
 def get_partner():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -273,7 +273,7 @@ def get_partner():
         'data': data,
     })
 
-@app.route('/api/vendor', methods=['GET'])
+@app.route('/clavis_connect/partner/GetVendor', methods=['GET'])
 def get_vendor():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -338,7 +338,7 @@ def get_vendor():
         'data': data,
     })
 
-@app.route('/api/soa', methods=['GET'])
+@app.route('/clavis_connect/sales/GetSalesAnalyst', methods=['GET'])
 def get_sale_orders_analyst():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
@@ -394,7 +394,7 @@ def get_sale_orders_analyst():
         'data': data,
     })
 
-@app.route('/api/poa', methods=['GET'])
+@app.route('/clavis_connect/purchase/GetPurchaseReport', methods=['GET'])
 def get_purchase_orders_analyst():
     limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
