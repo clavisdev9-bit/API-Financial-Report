@@ -1335,6 +1335,114 @@ def get_po():
         'data': data,
     })
 
+def get_purchase_order_lines(line_ids):
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'purchase.order.line',
+        'read',
+        [line_ids],
+        {
+            'fields': [
+                'order_id',
+                'product_id',
+                'name',
+                'product_qty',
+                'qty_received',
+                'analytic_distribution',
+                'price_unit',
+                'price_subtotal'
+            ]
+        }
+    )
+
+def get_analytic_accounts(analytic_ids):
+    if not analytic_ids:
+        return {}
+
+    records = models.execute_kw(
+        db,
+        uid,
+        password,
+        'account.analytic.account',
+        'read',
+        [analytic_ids],
+        {'fields': ['name']}
+    )
+
+    return {rec['id']: rec['name'] for rec in records}
+
+def build_po_with_lines(purchase_orders):
+    all_line_ids = []
+    for po in purchase_orders:
+        all_line_ids.extend(po['order_line'])
+
+    lines = get_purchase_order_lines(all_line_ids)
+
+    analytic_ids = set()
+    for line in lines:
+        dist = line.get('analytic_distribution') or {}
+        analytic_ids.update(int(k) for k in dist.keys())
+
+    analytic_map = get_analytic_accounts(list(analytic_ids))
+
+    line_map = {}
+    for line in lines:
+        order_id = line['order_id'][0]
+
+        analytic_dist = []
+        for analytic_id, percent in (line.get('analytic_distribution') or {}).items():
+            analytic_dist.append({
+                'id': int(analytic_id),
+                'name': analytic_map.get(int(analytic_id)),
+                'percentage': percent,
+            })
+
+        line_map.setdefault(order_id, []).append({
+            'product_id': line['product_id'],
+            'name': line['name'],
+            'analytic_distribution': analytic_dist,
+            'po_qty': line['product_qty'],
+            'gr_qty': line['qty_received'],
+            'price_unit': line['price_unit'],
+            'subtotal': line['price_subtotal'],
+        })
+
+    for po in purchase_orders:
+        po['lines'] = line_map.get(po['id'], [])
+        po.pop('order_line')
+
+    return purchase_orders
+
+
+@app.route('/purchase/get/po_outstanding', methods=['GET'])
+def get_po_outstanding():
+    limit = int(request.args.get('limit', 50))
+    offset = int(request.args.get('offset', 0))
+
+    purchase_orders = odoo_search_read(
+        model='purchase.order',
+        domain=[],
+        fields=[
+            'name',
+            'partner_id',
+            'date_order',
+            'amount_total',
+            'order_line',
+        ],
+        limit=limit,
+        offset=offset
+    )
+
+    data = build_po_with_lines(purchase_orders)
+
+    return jsonify({
+        'status': 'success',
+        'count': len(data),
+        'data': data,
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
 
