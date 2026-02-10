@@ -2,10 +2,10 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://edu-student4.odoo.com'
-db = 'edu-student4'
-username = 'usamah@clavis.co.id'
-password = '1'
+url = 'https://demo-260204c.odoo.com/'
+db = 'demo-260204c'
+username = 'aris@demo.com'
+password = '1111'
 
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
 uid = common.authenticate(db, username, password, {})
@@ -1444,5 +1444,6 @@ def get_po_outstanding():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # Make sure port 5000 isn't being used by another app (like macOS AirPlay Receiver)
+    app.run(debug=True, host='0.0.0.0', port=5001)
 
