@@ -1420,7 +1420,7 @@ def build_po_with_lines(purchase_orders):
 
 @app.route('/purchase/get/po_analytic', methods=['GET'])
 def get_po_analytic():
-    limit = int(request.args.get('limit', 0))
+    limit = int(request.args.get('limit', 50))
     offset = int(request.args.get('offset', 0))
 
     purchase_orders = odoo_search_read(
