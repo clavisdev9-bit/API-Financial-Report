@@ -1350,6 +1350,7 @@ def get_purchase_order_lines(line_ids):
                 'name',
                 'product_qty',
                 'qty_received',
+                'qty_invoiced',
                 'analytic_distribution',
                 'price_unit',
                 'price_subtotal'
@@ -1405,6 +1406,7 @@ def build_po_with_lines(purchase_orders):
             'analytic_distribution': analytic_dist,
             'po_qty': line['product_qty'],
             'gr_qty': line['qty_received'],
+            'qty_invoiced': line['qty_invoiced'],
             'price_unit': line['price_unit'],
             'subtotal': line['price_subtotal'],
         })
