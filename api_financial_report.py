@@ -2,9 +2,9 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://demo-260204c.odoo.com/'
-db = 'demo-260204c'
-username = 'aris@demo.com'
+url = 'https://demo-260306a.odoo.com/odoo'
+db = 'demo-260306a'
+username = 'aristya.rahadiyan@clavis.co.id'
 password = '1111'
 
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
