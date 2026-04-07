@@ -2,10 +2,10 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://demo-260306a.odoo.com/'
-db = 'demo-260306a'
+url = 'https://demo-260407a.odoo.com/'
+db = 'demo-260407a'
 username = 'aristya.rahadiyan@clavis.co.id'
-password = '1111'
+password = '5555'
 
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
 uid = common.authenticate(db, username, password, {})
