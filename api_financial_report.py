@@ -2,8 +2,8 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://demo-260407a.odoo.com/'
-db = 'demo-260407a'
+url = 'https://demo-260711a.odoo.com/'
+db = 'demo-260711a'
 username = 'aristya.rahadiyan@clavis.co.id'
 password = '5555'
 
@@ -69,18 +69,18 @@ def get_sale_orders():
         'picking_ids',
         'planning_initial_date',
         'pricelist_id',
-        'procurement_group_id',
+        # 'procurement_group_id', --unavailable di odoo 19--
         'tax_calculation_rounding_method',
         'tax_country_id',
         'team_id',
-        'transaction_ids',
+        # 'transaction_ids', --unavailable di odoo 19--
         'type_name',
         'user_id',
         'validity_date',
         'warehouse_id',
         'write_date',
         'write_uid',
-        'x_studio_email',
+        # 'x_studio_email', --field custom--
         'company_id',
         'country_code',
     ]
@@ -166,16 +166,16 @@ def get_product():
         'company_id',
         'cost_currency_id',
         'cost_method',
-        'country_of_origin',
+        # 'country_of_origin', --unavailable di odoo 19--
         'create_date',
         'create_uid',
         'currency_id',
-        'date_from',
-        'date_to',
+        # 'date_from', --context field, tidak bisa di-fetch via RPC--
+        # 'date_to', --context field, tidak bisa di-fetch via RPC--
         'default_code',
         'display_name',
-        'expected_margin',
-        'expected_margin_rate',
+        # 'expected_margin', --unavailable di odoo 19--
+        # 'expected_margin_rate', --unavailable di odoo 19--
         'free_qty',
         'id',
         'incoming_qty',
@@ -188,13 +188,13 @@ def get_product():
         'property_stock_inventory',
         'property_stock_production',
         'responsible_id',
-        'sale_avg_price',
+        # 'sale_avg_price', --unavailable di odoo 19--
         'sale_delay',
-        'sale_expected',
+        # 'sale_expected', --unavailable di odoo 19--
         'standard_price',
-        'total_cost',
-        'total_margin',
-        'total_margin_rate',
+        # 'total_cost', --unavailable di odoo 19--
+        # 'total_margin', --unavailable di odoo 19--
+        # 'total_margin_rate', --unavailable di odoo 19--
         'total_value',
         'uom_id',
         'virtual_available',
@@ -242,7 +242,7 @@ def get_partner():
         'country_id',
         'create_date',
         'create_uid',
-        'credit',
+        # 'credit', --unavailable di odoo 19--
         'currency_id',
         'days_sales_outstanding',
         'display_name',
@@ -251,7 +251,7 @@ def get_partner():
         'email_normalized',
         'id',
         'im_status',
-        'mobile',
+        # 'mobile', --unavailable di odoo 19--
         'name',
         'partner_latitude',
         'partner_longitude',
@@ -294,18 +294,18 @@ def get_vendor():
         'country_id',
         'create_date',
         'create_uid',
-        'credit',
+        # 'credit', --unavailable di odoo 19--
         'currency_id',
-        'date_localization',
+        # 'date_localization', --unavailable di odoo 19--
         'days_sales_outstanding',
-        'debit',
+        # 'debit', --unavailable di odoo 19--
         'display_name',
         'email',
         'email_formatted',
         'email_normalized',
         'im_status',
         'invoice_ids',
-        'mobile',
+        # 'mobile', --unavailable di odoo 19--
         'name',
         'on_time_rate',
         'partner_vat_placeholder',
@@ -313,14 +313,14 @@ def get_vendor():
         'phone_sanitized',
         'purchase_line_ids',
         'street',
-        'total_all_due',
-        'total_all_overdue',
-        'total_due',
-        'total_invoiced',
-        'total_overdue',
+        # 'total_all_due', --unavailable di odoo 19--
+        # 'total_all_overdue', --unavailable di odoo 19--
+        # 'total_due', --unavailable di odoo 19--
+        # 'total_invoiced', --unavailable di odoo 19--
+        # 'total_overdue', --unavailable di odoo 19--
         'type',
         'tz',
-        'website_url',
+        # 'website_url', --unavailable di odoo 19--
         'write_date',
         'zip'
     ]
@@ -376,7 +376,7 @@ def get_sale_orders_analyst():
         'warehouse_id',
         'write_date',
         'write_uid',
-        'x_studio_email',
+        # 'x_studio_email', --field custom--
         'display_name',
         'invoice_status'
     ]
@@ -420,7 +420,7 @@ def get_purchase_orders_analyst():
         'default_location_dest_id_usage',
         'display_name',
         'effective_date',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'invoice_status',
         'name',
         'on_time_rate',
@@ -639,7 +639,7 @@ def get_vendor_bill():
         'sequence_prefix',
         'highest_name',
         'partner_shipping_id',
-        'partner_credit',
+        # 'partner_credit', --unavailable di odoo 19--
         'extract_partner_name',
         'extract_attachment_id',
         'message_main_attachment_id',
@@ -757,7 +757,7 @@ def get_vendor_journal_entry():
         'amount_total_words',
         'payment_state',
         'payment_reference',
-        'partner_credit',
+        # 'partner_credit', --unavailable di odoo 19--
         'invoice_origin',
         'sale_order_count',
         'line_ids',
@@ -1001,7 +1001,7 @@ def get_receipt():
         'product_id',
         'purchase_id',
         'sale_id',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'backorder_id',
         'is_return_picking',
         'is_locked',
@@ -1056,7 +1056,7 @@ def get_delivery():
         'return_ids',
         'return_count',
         'sale_id',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'shopee_delivery_status',
         'shopee_label_status',
         'shopee_order_ref',
@@ -1113,7 +1113,7 @@ def get_product_2():
         'return_ids',
         'return_count',
         'sale_id',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'shopee_delivery_status',
         'shopee_label_status',
         'shopee_order_ref',
@@ -1157,7 +1157,7 @@ def get_move_history():
         'is_return_picking',
         'return_id',
         'sale_id',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'partner_id',
         'company_id',
         'warehouse_address_id',
@@ -1240,7 +1240,7 @@ def get_so():
         'margin',
         'margin_percent',
         'pricelist_id',
-        'procurement_group_id',
+        # 'procurement_group_id', --unavailable di odoo 19--
         'payment_term_id',
         'require_signature',
         'require_payment',
@@ -1248,7 +1248,7 @@ def get_so():
         'create_uid',
         'write_date',
         'write_uid',
-        'x_studio_email'
+        # 'x_studio_email' --field custom--
     ]
 
     data = odoo_search_read(
@@ -1305,7 +1305,7 @@ def get_po():
         'display_name',
         'effective_date',
         'fiscal_position_id',
-        'group_id',
+        # 'group_id', --unavailable di odoo 19--
         'has_message',
         'id',
         'incoming_picking_count',
@@ -1430,7 +1430,7 @@ def get_po_analytic():
             'name',
             'partner_id',
             'partner_ref',
-            'x_studio_delivery_address',
+            # 'x_studio_delivery_address', --field custom--
             'currency_id',
             'date_order',
             'date_approve',
