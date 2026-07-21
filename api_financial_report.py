@@ -32,7 +32,7 @@ def odoo_search_read(model, domain, fields, limit=500, offset=0):
 # phase 1
 @app.route('/clavis_connect/sales/GetSalesOrder', methods=['GET'])
 def get_sale_orders():
-    limit = request.args.get('limit', 500)
+    limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
     limit = min(limit, 1000)
     fields = [
