@@ -32,9 +32,14 @@ def odoo_search_read(model, domain, fields, limit=500, offset=0):
 # phase 1
 @app.route('/clavis_connect/sales/GetSalesOrder', methods=['GET'])
 def get_sale_orders():
+
     limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
+
     limit = min(limit, 1000)
+
+    domain = []
+
     fields = [
         'access_url',
         'amount_invoiced',
@@ -69,25 +74,33 @@ def get_sale_orders():
         'picking_ids',
         'planning_initial_date',
         'pricelist_id',
-        # 'procurement_group_id', --unavailable di odoo 19--
         'tax_calculation_rounding_method',
         'tax_country_id',
         'team_id',
-        # 'transaction_ids', --unavailable di odoo 19--
         'type_name',
         'user_id',
         'validity_date',
         'warehouse_id',
         'write_date',
         'write_uid',
-        # 'x_studio_email', --field custom--
         'company_id',
         'country_code',
     ]
 
+    # Ambil total jumlah record
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order',
+        'search_count',
+        [domain]
+    )
+
+    # Ambil data berdasarkan pagination
     data = odoo_search_read(
         model='sale.order',
-        domain=[],
+        domain=domain,
         fields=fields,
         limit=limit,
         offset=offset,
@@ -95,10 +108,20 @@ def get_sale_orders():
 
     return jsonify({
         'status': 'success',
+
+        # Total seluruh record
+        'total': total,
+
+        # Jumlah record yang dikirim pada request ini
         'count': len(data),
+
+        # Pagination
         'limit': limit,
         'offset': offset,
-        'has_more': len(data) == limit,
+
+        # Apakah masih ada halaman berikutnya
+        'has_more': offset + len(data) < total,
+
         'data': data,
     })
 
