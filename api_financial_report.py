@@ -13,7 +13,7 @@ models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
 app = Flask(__name__)
 
-def odoo_search_read(model, domain, fields, limit=50, offset=0):
+def odoo_search_read(model, domain, fields, limit=False, offset=0):
     return models.execute_kw(
         db,
         uid,
@@ -32,7 +32,7 @@ def odoo_search_read(model, domain, fields, limit=50, offset=0):
 # phase 1
 @app.route('/clavis_connect/sales/GetSalesOrder', methods=['GET'])
 def get_sale_orders():
-    limit = request.args.get('limit', 50)
+    # limit = request.args.get('limit', 50)
     offset = int(request.args.get('offset', 0))
 
     fields = [
@@ -89,7 +89,7 @@ def get_sale_orders():
         model='sale.order',
         domain=[],
         fields=fields,
-        limit=limit,
+        limit=False,
         offset=offset,
     )
 
