@@ -2,8 +2,8 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://demo-260711a.odoo.com/'
-db = 'demo-260711a'
+url = 'https://demo-260729a.odoo.com/'
+db = 'demo-260729a'
 username = 'aristya.rahadiyan@clavis.co.id'
 password = '5555'
 
