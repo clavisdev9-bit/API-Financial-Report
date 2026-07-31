@@ -127,9 +127,10 @@ def get_sale_orders():
 
 @app.route('/clavis_connect/purchase/GetPurchaseOrder', methods=['GET'])
 def get_purchase_orders():
-    limit = int(request.args.get('limit', 50))
+    limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
-
+    limit = min(limit, 1000)
+    domain = []
     fields = [
         'access_url',
         'amount_tax',
@@ -164,17 +165,29 @@ def get_purchase_orders():
         'invoice_status'
     ]
 
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'purchase.order',
+        'search_count',
+        [domain]
+    )
+
     data = odoo_search_read(
         model='purchase.order',
-        domain=[],
+        domain=domain,
         fields=fields,
         limit=limit,
         offset=offset,
     )
-
     return jsonify({
-        'status': 'success',
+        'status': 'success'
+        'total': total,
         'count': len(data),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data) < total,
         'data': data,
     })
 
@@ -536,9 +549,10 @@ def get_account_move():
 
 @app.route('/api/account/invoice', methods=['GET'])
 def get_account_invoice():
-    limit = int(request.args.get('limit', 50))
+    limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
-
+    limit = min(limit, 1000)
+    domain = []
     fields = [
         'id',
         'name',
@@ -579,25 +593,38 @@ def get_account_invoice():
         'message_follower_ids',
         'audit_trail_message_ids'
     ]
-
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'account.move',
+        'search_count',
+        [domain]
+    )
     data = odoo_search_read(
         model='account.move',
-        domain=[],
+        domain=domain,
         fields=fields,
         limit=limit,
         offset=offset,
     )
 
     return jsonify({
-        'status': 'success',
+        'status': 'success'
+        'total': total,
         'count': len(data),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data) < total,
         'data': data,
     })
 
 @app.route('/api/account/cust_get_payment', methods=['GET'])
 def get_customer_payment():
-    limit = int(request.args.get('limit', 50))
+    limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
+    limit = min(limit, 1000)
+    domain = []
 
     fields = [
         'company_currency_id',
@@ -614,7 +641,14 @@ def get_customer_payment():
         'amount_company_currency_signed',
         'state'
     ]
-
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'account.payment',
+        'search_count',
+        [domain]
+    )
     data = odoo_search_read(
         model='account.payment',
         domain=[],
@@ -624,8 +658,12 @@ def get_customer_payment():
     )
 
     return jsonify({
-        'status': 'success',
+        'status': 'success'
+        'total': total,
         'count': len(data),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data) < total,
         'data': data,
     })
 
@@ -1232,9 +1270,10 @@ def get_move_history():
 
 @app.route('/sales/get/so', methods=['GET'])
 def get_so():
-    limit = int(request.args.get('limit', 50))
+    limit = int(request.args.get('limit', 500))
     offset = int(request.args.get('offset', 0))
-
+    limit = min(limit, 1000)
+    domain = []
     fields = [
         'id',
         'name',
@@ -1276,18 +1315,29 @@ def get_so():
         'write_uid',
         # 'x_studio_email' --field custom--
     ]
-
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order',
+        'search_count',
+        [domain]
+    )
     data = odoo_search_read(
         model='sale.order',
-        domain=[],
+        domain=domain,
         fields=fields,
         limit=limit,
         offset=offset,
     )
 
     return jsonify({
-        'status': 'success',
+        'status': 'success'
+        'total': total,
         'count': len(data),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data) < total,
         'data': data,
     })
 
