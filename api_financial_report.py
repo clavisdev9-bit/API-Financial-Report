@@ -182,7 +182,7 @@ def get_purchase_orders():
         offset=offset,
     )
     return jsonify({
-        'status': 'success'
+        'status': 'success',
         'total': total,
         'count': len(data),
         'limit': limit,
@@ -610,7 +610,7 @@ def get_account_invoice():
     )
 
     return jsonify({
-        'status': 'success'
+        'status': 'success',
         'total': total,
         'count': len(data),
         'limit': limit,
@@ -658,7 +658,7 @@ def get_customer_payment():
     )
 
     return jsonify({
-        'status': 'success'
+        'status': 'success',
         'total': total,
         'count': len(data),
         'limit': limit,
@@ -1332,7 +1332,7 @@ def get_so():
     )
 
     return jsonify({
-        'status': 'success'
+        'status': 'success',
         'total': total,
         'count': len(data),
         'limit': limit,
