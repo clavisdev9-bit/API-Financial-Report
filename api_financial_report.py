@@ -7,25 +7,13 @@ db = 'demo-260729a'
 username = 'aristya.rahadiyan@clavis.co.id'
 password = '5555'
 
-# def get_models():
-# common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
-# uid = common.authenticate(db, username, password, {})
-# models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
-def get_odoo():
-    common = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/common",allow_none=True)
-    uid = common.authenticate(db, username, password, {})
-
-    models = xmlrpc.client.ServerProxy(
-        f"{url}/xmlrpc/2/object",
-        allow_none=True
-    )
-
-    return uid, models
+common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
+uid = common.authenticate(db, username, password, {})
+models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
 app = Flask(__name__)
 
 def odoo_search_read(model, domain, fields, limit=500, offset=0):
-    uid, models = get_odoo()
     return models.execute_kw(
         db,
         uid,
@@ -100,7 +88,6 @@ def get_sale_orders():
     ]
 
     # Ambil total jumlah record
-    uid, models = get_odoo()
     total = models.execute_kw(
         db,
         uid,
@@ -177,7 +164,7 @@ def get_purchase_orders():
         'write_uid',
         'invoice_status'
     ]
-    uid, models = get_odoo()
+
     total = models.execute_kw(
         db,
         uid,
@@ -606,7 +593,6 @@ def get_account_invoice():
         'message_follower_ids',
         'audit_trail_message_ids'
     ]
-    uid, models = get_odoo()
     total = models.execute_kw(
         db,
         uid,
@@ -655,7 +641,6 @@ def get_customer_payment():
         'amount_company_currency_signed',
         'state'
     ]
-    uid, models = get_odoo()
     total = models.execute_kw(
         db,
         uid,
@@ -1330,7 +1315,6 @@ def get_so():
         'write_uid',
         # 'x_studio_email' --field custom--
     ]
-    uid, models = get_odoo()
     total = models.execute_kw(
         db,
         uid,
@@ -1428,7 +1412,6 @@ def get_po():
     })
 
 def get_purchase_order_lines(line_ids):
-    uid, models = get_odoo()
     return models.execute_kw(
         db,
         uid,
@@ -1454,7 +1437,7 @@ def get_purchase_order_lines(line_ids):
 def get_analytic_accounts(analytic_ids):
     if not analytic_ids:
         return {}
-    uid, models = get_odoo()
+
     records = models.execute_kw(
         db,
         uid,
