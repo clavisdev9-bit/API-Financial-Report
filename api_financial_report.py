@@ -1936,6 +1936,7 @@ def get_so_analytic():
             'currency_id',
             'customizable_pdf_form_fields',
             'date_order',
+            'commitment_date',
             'delivery_count',
             'delivery_status',
             'display_name',
