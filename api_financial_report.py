@@ -1966,6 +1966,7 @@ def get_so_analytic():
             'write_uid',
             'company_id',
             'country_code',
+            'invoice_status'
         ],
         limit=limit,
         offset=offset
