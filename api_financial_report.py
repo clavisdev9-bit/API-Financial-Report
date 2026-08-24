@@ -2,8 +2,8 @@ import xmlrpc.client
 from flask import Flask, request, jsonify
 
 
-url = 'https://demo-260729a.odoo.com/'
-db = 'demo-260729a'
+url = 'https://demo-260818a.odoo.com/'
+db = 'demo-260818a'
 username = 'aristya.rahadiyan@clavis.co.id'
 password = '5555'
 
@@ -1510,6 +1510,255 @@ def build_po_with_lines(purchase_orders):
 
     return purchase_orders
 
+def get_product_templates2(template_ids):
+    """Ambil detail product.template berdasarkan list ID."""
+    if not template_ids:
+        return []
+
+    uid, models = get_odoo()
+
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'product.template',
+        'read',
+        [template_ids],
+        {
+            'fields': [
+                'name',
+                'default_code',
+                'categ_id',
+                'x_studio_brand',
+                'list_price',
+                'standard_price',
+                'weight',
+                'volume',
+                'type'
+            ]
+        }
+    )
+
+
+def get_invoice_line_order(line_ids):
+    """Ambil detail sale.order.line berdasarkan list ID."""
+    if not line_ids:
+        return []
+
+    uid, models = get_odoo()
+
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order.line',
+        'read',
+        [line_ids],
+        {
+            'fields': [
+                'order_id',
+                'product_id',
+                'product_type',
+                'product_template_id',
+                'product_uom_qty',
+                'qty_delivered',
+                'qty_invoiced',
+                'product_uom_id',
+                'price_unit',
+                'tax_ids',
+                'discount',
+                'price_subtotal'
+            ]
+        }
+    )
+
+
+def get_sale_orders_by_name(names):
+    """
+    Cari sale.order berdasarkan nama (invoice_origin di account.move
+    adalah Char, bukan relasi ID langsung, jadi harus dicocokkan lewat name).
+    """
+    if not names:
+        return []
+
+    uid, models = get_odoo()
+
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order',
+        'search_read',
+        [[('name', 'in', names)]],
+        {
+            'fields': [
+                'id',
+                'name',
+                'order_line'
+            ]
+        }
+    )
+
+
+def build_si_with_lines(invoices):
+    """
+    Alur relasi (sesuai diagram):
+    account.move.invoice_origin (name)
+        -> sale.order (by name)
+            -> sale.order.line (order_line, one to many)
+                -> product.template (product_template_id, one to one)
+    """
+
+    # 1. Kumpulkan nama SO unik dari setiap invoice
+    origin_names = list({
+        inv['invoice_origin']
+        for inv in invoices
+        if inv.get('invoice_origin')
+    })
+
+    if not origin_names:
+        for inv in invoices:
+            inv['invoice_origin'] = []
+        return invoices
+
+    # 2. Ambil sale.order yang cocok
+    sale_orders = get_sale_orders_by_name(origin_names)
+    so_by_name = {so['name']: so for so in sale_orders}
+
+    # 3. Kumpulkan semua ID sale.order.line dari seluruh sale order
+    all_order_line_ids = []
+    for so in sale_orders:
+        all_order_line_ids.extend(so['order_line'])
+
+    # 4. Ambil detail sale.order.line
+    order_lines = get_invoice_line_order(all_order_line_ids)
+
+    # 5. Kumpulkan ID product.template unik dari sale.order.line
+    template_ids = list({
+        line['product_template_id'][0]
+        for line in order_lines
+        if line.get('product_template_id')
+    })
+
+    # 6. Ambil detail product.template
+    templates = get_product_templates2(template_ids)
+    template_map = {t['id']: t for t in templates}
+
+    # 7. Kelompokkan sale.order.line berdasarkan sale.order induknya
+    lines_by_so_id = {}
+    for line in order_lines:
+        if not line.get('order_id'):
+            continue
+        so_id = line['order_id'][0]
+
+        lines_by_so_id.setdefault(so_id, []).append({
+            'product_id': line.get('product_id'),
+            'product_template': (
+                template_map.get(line['product_template_id'][0])
+                if line.get('product_template_id') else None
+            ),
+            'product_type': line.get('product_type'),
+            'po_qty': line.get('product_uom_qty'),
+            'dl_qty': line.get('qty_delivered'),
+            'qty_invoiced': line.get('qty_invoiced'),
+            'unit': line.get('product_uom_id'),
+            'price_unit': line.get('price_unit'),
+            'tax': line.get('tax_ids'),
+            'discount': line.get('discount'),
+            'price_subtotal': line.get('price_subtotal'),
+        })
+
+    # 8. Sisipkan struktur invoice_origin -> [{name, lines}] ke tiap invoice
+    for inv in invoices:
+        origin_name = inv.get('invoice_origin')
+        so = so_by_name.get(origin_name)
+
+        if so:
+            inv['invoice_origin'] = [{
+                'name': so['name'],
+                'lines': lines_by_so_id.get(so['id'], [])
+            }]
+        else:
+            inv['invoice_origin'] = []
+
+    return invoices
+
+
+@app.route('/api/account/invoice_analytics', methods=['GET'])
+def get_invoice_analytics():
+    limit = int(request.args.get('limit', 500))
+    offset = int(request.args.get('offset', 0))
+    limit = min(limit, 1000)
+    domain = []
+
+    invoices = odoo_search_read(
+        model='account.move',
+        domain=domain,
+        fields=[
+            'id',
+            'name',
+            'move_type',
+            'state',
+            'partner_id',
+            'commercial_partner_id',
+            'company_id',
+            'currency_id',
+            'amount_total',
+            'amount_untaxed',
+            'amount_tax',
+            'amount_residual',
+            'amount_paid',
+            'payment_state',
+            'payment_reference',
+            'invoice_date',
+            'invoice_date_due',
+            'next_payment_date',
+            'journal_id',
+            'invoice_origin',
+            'invoice_line_ids',
+            'line_ids',
+            'payment_ids',
+            'matched_payment_ids',
+            'partner_bank_id',
+            'bank_partner_id',
+            'team_id',
+            'user_id',
+            'create_date',
+            'write_date',
+            'create_uid',
+            'write_uid',
+            'country_code',
+            'tax_country_id',
+            'l10n_id_kode_transaksi',
+            'message_ids',
+            'message_follower_ids',
+            'audit_trail_message_ids'
+        ],
+        limit=limit,
+        offset=offset
+    )
+
+    uid, models = get_odoo()
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'account.move',
+        'search_count',
+        [domain]
+    )
+
+    data = build_si_with_lines(invoices)
+
+    return jsonify({
+        'status': 'success',
+        'total': total,
+        'count': len(data),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data) < total,
+        'data': data,
+    })
 
 @app.route('/purchase/get/po_analytic', methods=['GET'])
 def get_po_analytic():
@@ -1548,7 +1797,200 @@ def get_po_analytic():
         'count': len(data),
         'data': data,
     })
+uid, models = get_odoo()
+field_ids = models.execute_kw(
+    db,
+    uid,
+    password,
+    'ir.model.fields',
+    'search_read',
+    [[['model', '=', 'account.move']]],
+    {
+        'fields': ['name', 'field_description', 'ttype'],
+        'order': 'name'
+    }
+)
 
+for field in field_ids:
+    print(field)
+
+def get_product_templates(template_ids):
+    uid, models = get_odoo()
+
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'product.template',
+        'read',
+        [template_ids],
+        {
+            'fields': [
+                'name',
+                'default_code',
+                'categ_id',
+                'x_studio_brand',
+                'list_price',
+                'standard_price',
+                'weight',
+                'volume',
+                'type'
+            ]
+        }
+    )
+def get_sales_order_lines(line_ids):
+    uid, models = get_odoo()
+    
+    return models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order.line',
+        'read',
+        [line_ids],
+        {
+            'fields': [
+                'order_id',
+                'product_id',
+                'product_type',
+                'product_template_id',
+                'product_uom_qty',
+                'qty_delivered',
+                'qty_invoiced',
+                'product_uom_id',
+                'price_unit',
+                'tax_ids',
+                'discount',
+                'price_subtotal'
+            ]
+        }
+    )
+
+def build_so_with_lines(sales_orders):
+    all_line_ids = []
+    for so in sales_orders:
+        all_line_ids.extend(so['order_line'])
+
+    lines = get_sales_order_lines(all_line_ids)
+    template_ids = []
+
+    for line in lines:
+        if line['product_template_id']:
+            template_ids.append(line['product_template_id'][0])
+
+    template_ids = list(set(template_ids))
+    products = get_product_templates(template_ids)
+    product_map = {
+        p['id']: p
+        for p in products
+    }
+    line_map = {}
+    for line in lines:
+        product_id = line['order_id'][0]
+    
+        line_map.setdefault(product_id, []).append({
+            'product_id': line['product_id'],
+            'product_template': product_map.get(
+                line['product_template_id'][0]
+            ) if line['product_template_id'] else None,
+            'product_type': line['product_type'],
+            'product_type': line['product_type'],
+            'po_qty': line['product_uom_qty'],
+            'dl_qty': line['qty_delivered'],
+            'qty_invoiced': line['qty_invoiced'],
+            'unit': line['product_uom_id'],
+            'price_unit': line['price_unit'],
+            'tax': line['tax_ids'],
+            'discount': line['discount'],
+            'price_subtotal': line['price_subtotal'],
+        })
+
+    for so in sales_orders:
+        so['lines'] = line_map.get(so['id'], [])
+        so.pop('order_line')
+
+    return sales_orders
+
+@app.route('/sales/get/so_analytic', methods=['GET'])
+def get_so_analytic():
+    limit = int(request.args.get('limit', 500))
+    offset = int(request.args.get('offset', 0))
+    limit = min(limit, 1000)
+    domain = []
+    sales_orders = odoo_search_read(
+        model='sale.order',
+        domain=domain,
+        fields=[
+            'access_url',
+            'amount_invoiced',
+            'amount_paid',
+            'amount_tax',
+            'amount_to_invoice',
+            'amount_total',
+            'amount_undiscounted',
+            'amount_unpaid',
+            'amount_untaxed',
+            'company_price_include',
+            'create_date',
+            'create_uid',
+            'currency_id',
+            'customizable_pdf_form_fields',
+            'date_order',
+            'delivery_count',
+            'delivery_status',
+            'display_name',
+            'duplicated_order_ids',
+            'effective_date',
+            'expected_date',
+            # 'expense_count',
+            # 'margin',
+            # 'margin_percent',
+            'medium_id',
+            'name',
+            'order_line',
+            'partner_id',
+            'partner_invoice_id',
+            'partner_shipping_id',
+            'picking_ids',
+            'planning_initial_date',
+            'pricelist_id',
+            'tax_calculation_rounding_method',
+            'tax_country_id',
+            'team_id',
+            'type_name',
+            'user_id',
+            'validity_date',
+            'warehouse_id',
+            'write_date',
+            'write_uid',
+            'company_id',
+            'country_code',
+        ],
+        limit=limit,
+        offset=offset
+    )
+
+    uid, models = get_odoo()
+    total = models.execute_kw(
+        db,
+        uid,
+        password,
+        'sale.order',
+        'search_count',
+        [domain]
+    )
+    data2 = build_so_with_lines(sales_orders)
+
+    return jsonify({
+        'status': 'success',
+        'total': total,
+        'count': len(data2),
+        'limit': limit,
+        'offset': offset,
+        'has_more': offset + len(data2) < total,
+        'data': data2,
+    })
+    
 if __name__ == '__main__':
     # Make sure port 5000 isn't being used by another app (like macOS AirPlay Receiver)
     app.run(debug=True, host='0.0.0.0', port=5001)
